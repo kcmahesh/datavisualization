@@ -1,0 +1,139 @@
+---
+title: "Narrative Data Visualization "
+output: 
+  flexdashboard::flex_dashboard:
+      source_code: embed
+      storyboard: true
+      social: menu
+     
+---
+
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dygraphs)
+library(plotly)
+library(dplyr) 
+```
+
+
+### Ethnicity Variation with Age Factor
+
+```{r}
+# read csv data
+ds1 <- read.csv("C:\\tmp\\custodial-deaths.csv",header=TRUE,sep=",");
+# skip column after 12 fields
+ds2 <- ds1[,c(1:12)] ;
+
+
+
+
+# create subset for age and death date
+
+attach(ds2)
+# convert factor to date 
+ds2$Death.Date<-as.Date(ds2$Death.Date,format="%m/%d/%y")
+ds2$Age<-as.numeric(ds2$Age)
+
+
+
+# Group by ethnicity
+african_am<-filter(ds2,Ethnicity == "African-American") ;
+indian_am<-filter(ds2,Ethnicity == "American Indian/Alaska Native") ;
+anglo<-filter(ds2,Ethnicity == "Anglo") ;
+asian<-filter(ds2,Ethnicity == "Asian") ;
+hispanic<-filter(ds2,Ethnicity == "Hispanic") ;
+middle_east<-filter(ds2,Ethnicity == "Middle East") ;
+native_hawaian<-filter(ds2,Ethnicity == "Native Hawaiian/Pacific Islander") ;
+
+### Vis1
+
+p <- plot_ly(ds2, x = african_am$Age, y = african_am$Department.Name, name = "African-American",showgrid="false",
+             mode = "markers", marker = list(color = "brown")) %>%
+  add_trace(x = indian_am$Age, name = "American Indian/Alasaka Native", y = indian_am$Department.Name, marker = list(color = "purple"),
+            mode = "markers")  %>%
+  add_trace(x = anglo$Age, name = "Anglo", y = anglo$Department.Name, marker = list(color = "yellow"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = asian$Age, name = "Asian", y = asian$Department.Name, marker = list(color = "green"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = hispanic$Age, name = "Hispanic", y = hispanic$Department.Name, marker = list(color = "red"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = middle_east$Age, name = "Middle East", y = middle_east$Department.Name, marker = list(color = "black"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = native_hawaian$Age, name = "Native Hawaian/Pacific Islander", y = native_hawaian$Department.Name, marker = list(color = "cyan"),mode = "markers",text = rownames(ds2)) 
+layout(
+  title = "Ethnicity Variation with Age Factor in Texas crime Dataset",
+  xaxis = list(title = "Age",showgrid=F),yaxis=list(showgrid =F),
+  font = list(color = "#000000", size = 12, family = "Tahoma"))
+p
+
+```
+
+*** 
+  The plot show the visualization based on ethinicity. The ethnicity are label with different colors. The x-axis denotes age and y-axis denotes department name.
+  This plot describes the ethnicity with specific age on given department in Texas.We can seen different crime done by different ethinicity with particular age range.Since there are lot of distinct department name, we are having problem to
+  generate all department so it is shrinked or truncated.
+  Features of the graph :
+  1.) User can drill down to see graph plot for specific ethinicty by taking off all other ethinicity in the label at top right.
+  2.) User can narrow down to particular department by maximizing the scrollable 
+  button on left side into department.
+  3.) The plot will sum of the total crime on with specific age for each department.(i.e. count of crime done by each age in specific department.)
+
+### Record of Crimes based on Ethinicity
+
+
+```{r}
+## vis2
+
+
+p1 <- plot_ly(ds2,x = african_am$Age,name = "African-American",showgrid="false",
+             mode = "markers", marker = list(color = "brown")) %>%
+  add_trace(x = indian_am$Age, name = "American Indian/Alasaka Native", marker = list(color = "purple"),
+            mode = "markers")  %>%
+  add_trace(x = anglo$Age, name = "Anglo", marker = list(color = "yellow"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = asian$Age, name = "Asian",  marker = list(color = "green"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = hispanic$Age, name = "Hispanic",  marker = list(color = "red"),
+            mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = middle_east$Age, name = "Middle East",  marker = list(color = "black"), mode = "markers",text = rownames(ds2))  %>%
+  add_trace(x = native_hawaian$Age, name = "Native Hawaian/Pacific Islander",marker = list(color = "cyan"), mode = "markers",text = rownames(ds2)) 
+  layout(
+    title = "Frequency of crime by Ethnicity",
+    list(title = "Age",showgrid=F),
+    list(showgrid =F),
+    font = list(color = "#000000", size = 12,
+    family = "Tahoma"))
+p1
+```
+
+
+*** 
+  This graph shows the record count of crime history by each ethinicity.The vis shows most of the crime are done by Anglo, followed by Hispanic where as Middle East and Native Hawaian are least.
+
+
+### Histogram of custody type and Manner of Death
+
+
+```{r}
+### Vis3
+p2 <- ggplot(data = ds2, aes(x = Custody.Type, fill = Manner.Death)) +
+  geom_bar(position = "dodge")
+ggplotly(p2)
+p2
+```
+
+*** 
+ This graph shows the histogram for custody type and manner of death.
+ 
+###  Histogram for age and crime by ethnicity
+
+```{r}
+p3 <- plot_ly(ds2, x = african_am$Age,type="histogram",name="African American") %>% add_trace(x =indian_am$Age , opacity = 0.6, type = "histogram",name="American Indian") %>% add_trace(x =asian$Age , opacity = 0.6, type = "histogram",name="Asian") %>% add_trace(x =hispanic$Age , opacity = 0.6, type = "histogram",name="Hispanic") %>% add_trace(x =middle_east$Age , opacity = 0.6, type = "histogram",name="Middle East") %>% add_trace(x =anglo$Age , opacity = 0.6, type = "histogram",name="Anglo") %>% add_trace(x =native_hawaian$Age , opacity = 0.6, type = "histogram",name="Nataive_Hawain") %>% layout(barmode="overlay")
+p3
+```
+
+
+*** 
+  This graph shows the record count of crime history by each ethinicity.
