@@ -1,0 +1,91 @@
+---
+title: "Narrative Data Visualization "
+output: 
+  flexdashboard::flex_dashboard:
+      source_code: embed
+      storyboard: true
+      social: menu
+     
+---
+
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(dygraphs)
+library(plotly)
+library(dplyr) 
+library(RCurl)
+library(sqldf)
+library(readr)
+library(tm)
+library(wordcloud)
+```
+
+
+### Number of crimes per Age
+
+```{r}
+
+custodial_deaths <- read_csv("~/Documents/custodial-deaths.csv")
+groupByDeaths <- sqldf('select sum(Age)/Age as Count, Age from custodial_deaths group by Age')
+plot_ly(groupByDeaths, x = groupByDeaths$Age, y = groupByDeaths$Count,type = "bar", text = paste("of Age",groupByDeaths$Age))
+```
+
+
+*** 
+  The plot show the visualization based on age. Age is on the x-axis and the count of the Age is on the y-axis. I Grouped the data based on the Age using SQLDF package.
+  
+  Also Hover on to see the Exact age and its count.
+
+Using this visual we can see in which age group the crimes are more.
+
+
+### Wordcloud
+
+
+
+```{r}
+departCorpus <- Corpus(VectorSource(custodial_deaths$`Department Name`))
+departCorpus <- tm_map(departCorpus, content_transformer(tolower))
+departCorpus <- tm_map(departCorpus, removePunctuation)
+
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+text(x=0.5, y=0.5, "Department Name Cloud")
+wordcloud(departCorpus, max.words = 5000, random.order = FALSE)
+
+
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+text(x=0.5, y=0.5, "Custody Type Cloud")
+wordcloud(Corpus(VectorSource(custodial_deaths$`Custody Type`)), max.words = 5000, random.order = FALSE)
+
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+text(x=0.5, y=0.5, "Custody Type Facility Cloud")
+wordcloud(Corpus(VectorSource(custodial_deaths$`Custody Type Facility`)), max.words = 5000, random.order = FALSE)
+
+
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+text(x=0.5, y=0.5, "Ethnicity Cloud")
+wordcloud(Corpus(VectorSource(custodial_deaths$Ethnicity)), max.words = 5000, random.order = FALSE)
+
+
+
+```
+
+*** 
+  The plot show the visualization based on the words used. Wordcloud is the package which converts the data into form cloud where it has algorithm to derive on the multiple based.
+  
+  There are four cloud i derived for this project.
+  1.  Department Name
+  2.  Custody Type
+  3.  Custody Type Facility
+  4.  Ethnicity
+
